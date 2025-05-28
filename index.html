@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Mots de Passe Sécurisés</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.5s ease;
+        }
+        .container {
+            max-width: 600px;
+            margin-top: 2rem;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            background-color: #4a6bdf;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 1.5rem 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .form-range::-webkit-slider-thumb {
+            background: #4a6bdf;
+            transition: transform 0.2s ease;
+        }
+        .form-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        .form-range::-moz-range-thumb {
+            background: #4a6bdf;
+            transition: transform 0.2s ease;
+        }
+        .form-range::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+        .form-check-input:checked {
+            background-color: #4a6bdf;
+            border-color: #4a6bdf;
+        }
+        .form-check-input {
+            transition: all 0.2s ease;
+        }
+        .form-check-input:hover {
+            cursor: pointer;
+            transform: scale(1.1);
+        }
+        .btn-primary {
+            background-color: #4a6bdf;
+            border-color: #4a6bdf;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #3a5bc9;
+            border-color: #3a5bc9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(74, 107, 223, 0.3);
+        }
+        .btn-outline-secondary {
+            color: #4a6bdf;
+            border-color: #4a6bdf;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #4a6bdf;
+            border-color: #4a6bdf;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(74, 107, 223, 0.3);
+        }
+        .password-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .password-display:focus {
+            border-color: #4a6bdf;
+            box-shadow: 0 0 0 0.25rem rgba(74, 107, 223, 0.25);
+        }
+        .strength-very-weak { background-color: #dc3545; }
+        .strength-weak { background-color: #ffc107; }
+        .strength-medium { background-color: #fd7e14; }
+        .strength-strong { background-color: #20c997; }
+        .strength-very-strong { background-color: #198754; }
+        .progress-bar {
+            transition: width 0.5s ease-out, background-color 0.5s ease;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .copy-icon, .check-icon {
+            transition: all 0.3s ease;
+        }
+        .copy-success {
+            color: #198754;
+        }
+        .tab-content {
+            padding: 1rem 0;
+        }
+        .nav-tabs .nav-link {
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+        .nav-tabs .nav-link.active {
+            color: #4a6bdf;
+            border-color: #dee2e6 #dee2e6 #fff;
+            font-weight: 600;
+        }
+        .nav-tabs .nav-link:hover:not(.active) {
+            border-color: #e9ecef #e9ecef #dee2e6;
+            color: #4a6bdf;
+        }
+        .saved-password-item {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .saved-password-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+        }
+        .saved-password-actions {
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        .saved-password-item:hover .saved-password-actions {
+            opacity: 1;
+        }
+        .saved-password-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .saved-password-value {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            word-break: break-all;
+        }
+        .password-mask {
+            -webkit-text-security: disc;
+            text-security: disc;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            color: #adb5bd;
+        }
+        .password-generation-animation {
+            animation: fadeInUp 0.5s;
+        }
+        .password-save-animation {
+            animation: fadeInDown 0.5s;
+        }
+        .password-delete-animation {
+            animation: fadeOutRight 0.5s;
+        }
+        .shake-animation {
+            animation: shakeX 0.5s;
+        }
+        .pulse-animation {
+            animation: pulse 0.5s;
+        }
+        .tab-pane {
+            animation: fadeIn 0.3s;
+        }
+        /* Styles pour les icônes sociales */
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .social-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #4a6bdf;
+            color: white;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .social-icon:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background-color: #3a5bc9;
+            color: white;
+        }
+        .author-info {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate3d(0, 20px, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translate3d(0, -20px, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
+        @keyframes fadeOutRight {
+            from {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+            to {
+                opacity: 0;
+                transform: translate3d(20px, 0, 0);
+            }
+        }
+        @keyframes shakeX {
+            from, to { transform: translate3d(0, 0, 0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate3d(-5px, 0, 0); }
+            20%, 40%, 60%, 80% { transform: translate3d(5px, 0, 0); }
+        }
+        @keyframes pulse {
+            from { transform: scale3d(1, 1, 1); }
+            50% { transform: scale3d(1.05, 1.05, 1.05); }
+            to { transform: scale3d(1, 1, 1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media (max-width: 576px) {
+            .container {
+                margin-top: 1rem;
+            }
+            .card-header {
+                padding: 1rem;
+            }
+            .password-display {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h2 class="mb-0 d-flex align-items-center justify-content-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-shield-lock me-2" viewBox="0 0 16 16">
+                        <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533q.18.085.293.118a1 1 0 0 0 .866 0q.114-.034.294-.118c.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56z"/>
+                        <path d="M9.5 6.5a1.5 1.5 0 0 1-1 1.415l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99a1.5 1.5 0 1 1 2-1.415z"/>
+                    </svg>
+                    Générateur de Mots de Passe
+                </h2>
+                <p class="text-white-50 mb-0">Créez des mots de passe sécurisés et personnalisés</p>
+            </div>
+            <div class="card-body p-4">
+                <!-- Onglets -->
+                <ul class="nav nav-tabs" id="passwordTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="generator-tab" data-bs-toggle="tab" data-bs-target="#generator" type="button" role="tab" aria-controls="generator" aria-selected="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key me-1" viewBox="0 0 16 16">
+                                <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8m4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5"/>
+                                <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                            </svg>
+                            Générateur
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="saved-tab" data-bs-toggle="tab" data-bs-target="#saved" type="button" role="tab" aria-controls="saved" aria-selected="false">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark me-1" viewBox="0 0 16 16">
+                                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
+                            </svg>
+                            Mots de passe sauvegardés
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="passwordTabsContent">
+                    <!-- Onglet Générateur -->
+                    <div class="tab-pane fade show active" id="generator" role="tabpanel" aria-labelledby="generator-tab">
+                        <!-- Longueur du mot de passe -->
+                        <div class="mb-4">
+                            <label for="passwordLength" class="form-label d-flex justify-content-between">
+                                <span>Longueur du mot de passe</span>
+                                <span id="lengthValue">16</span>
+                            </label>
+                            <input type="range" class="form-range" min="8" max="64" value="16" id="passwordLength">
+                        </div>
+
+                        <!-- Options des caractères -->
+                        <div class="mb-4">
+                            <label class="form-label">Types de caractères</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeLowercase" checked>
+                                        <label class="form-check-label" for="includeLowercase">
+                                            Minuscules (a-z)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeUppercase" checked>
+                                        <label class="form-check-label" for="includeUppercase">
+                                            Majuscules (A-Z)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeDigits" checked>
+                                        <label class="form-check-label" for="includeDigits">
+                                            Chiffres (0-9)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeSymbols" checked>
+                                        <label class="form-check-label" for="includeSymbols">
+                                            Symboles (!@#$...)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="excludeAmbiguous">
+                                <label class="form-check-label" for="excludeAmbiguous">
+                                    Exclure les caractères ambigus (I, l, 1, O, 0)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Mot de passe généré -->
+                        <div class="mb-4">
+                            <label for="generatedPassword" class="form-label">Mot de passe généré</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control password-display" id="generatedPassword" readonly>
+                                <button class="btn btn-outline-secondary" type="button" id="copyButton">
+                                    <span class="copy-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="check-icon d-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+                                            <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Indicateur de force -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <label class="form-label mb-0">Force du mot de passe</label>
+                                <span id="strengthText">-</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="strengthIndicator" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex gap-2">
+                            <button id="generateButton" class="btn btn-primary flex-grow-1 d-flex justify-content-center align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat me-2" viewBox="0 0 16 16">
+                                    <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
+                                    <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
+                                </svg>
+                                Générer un nouveau mot de passe
+                            </button>
+                            <button id="savePasswordButton" class="btn btn-outline-primary d-flex justify-content-center align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-plus" viewBox="0 0 16 16">
+                                    <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
+                                    <path d="M8 4a.5.5 0 0 1 .5.5V6H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V7H6a.5.5 0 0 1 0-1h1.5V4.5A.5.5 0 0 1 8 4"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Mots de passe sauvegardés -->
+                    <div class="tab-pane fade" id="saved" role="tabpanel" aria-labelledby="saved-tab">
+                        <div id="savedPasswordsList" class="mb-3">
+                            <!-- Les mots de passe sauvegardés seront ajoutés ici dynamiquement -->
+                        </div>
+                        <div id="emptyState" class="empty-state">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-dash" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M5.5 6.5A.5.5 0 0 1 6 6h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5"/>
+                                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
+                            </svg>
+                            <p>Aucun mot de passe sauvegardé</p>
+                            <button id="goToGeneratorButton" class="btn btn-sm btn-outline-primary">
+                                Générer un mot de passe
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-center py-3">
+                <div class="author-info">Créé par Mohammed Ouadouch</div>
+                <div class="social-icons">
+                    <a href="https://github.com/mohammedouadouch" class="social-icon" title="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://instagram.com/mohammedouadouch_" class="social-icon" title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="mailto:ouadouchmohamed862@gmail.com" class="social-icon" title="Gmail">
+                        <i class="far fa-envelope"></i>
+                    </a>
+                </div>
+                <div class="mt-2 text-muted">
+                    Conseil : Utilisez un gestionnaire de mots de passe pour stocker vos mots de passe en toute sécurité.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour sauvegarder un mot de passe -->
+    <div class="modal fade" id="savePasswordModal" tabindex="-1" aria-labelledby="savePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="savePasswordModalLabel">Sauvegarder le mot de passe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="passwordLabel" class="form-label">Libellé (ex: Gmail, Facebook, etc.)</label>
+                        <input type="text" class="form-control" id="passwordLabel" placeholder="Entrez un libellé pour ce mot de passe">
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordToSave" class="form-label">Mot de passe</label>
+                        <input type="text" class="form-control" id="passwordToSave" readonly>
+                    </div>
+                    <div class="form-text text-muted">
+                        <small>Les mots de passe sont stockés localement sur votre appareil et ne sont jamais envoyés sur internet.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmSaveButton">Sauvegarder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast pour les notifications -->
+    <div class="toast-container">
+        <div id="toastNotification" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage">
+                    Mot de passe copié dans le presse-papiers !
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Éléments DOM
+            const passwordLengthSlider = document.getElementById('passwordLength');
+            const lengthValueDisplay = document.getElementById('lengthValue');
+            const includeLowercaseCheckbox = document.getElementById('includeLowercase');
+            const includeUppercaseCheckbox = document.getElementById('includeUppercase');
+            const includeDigitsCheckbox = document.getElementById('includeDigits');
+            const includeSymbolsCheckbox = document.getElementById('includeSymbols');
+            const excludeAmbiguousCheckbox = document.getElementById('excludeAmbiguous');
+            const generatedPasswordInput = document.getElementById('generatedPassword');
+            const copyButton = document.getElementById('copyButton');
+            const generateButton = document.getElementById('generateButton');
+            const strengthIndicator = document.getElementById('strengthIndicator');
+            const strengthText = document.getElementById('strengthText');
+            const toastNotification = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            const copyIcon = copyButton.querySelector('.copy-icon');
+            const checkIcon = copyButton.querySelector('.check-icon');
+            const savePasswordButton = document.getElementById('savePasswordButton');
+            const savePasswordModal = new bootstrap.Modal(document.getElementById('savePasswordModal'));
+            const passwordToSaveInput = document.getElementById('passwordToSave');
+            const passwordLabelInput = document.getElementById('passwordLabel');
+            const confirmSaveButton = document.getElementById('confirmSaveButton');
+            const savedPasswordsList = document.getElementById('savedPasswordsList');
+            const emptyState = document.getElementById('emptyState');
+            const goToGeneratorButton = document.getElementById('goToGeneratorButton');
+            const generatorTab = document.getElementById('generator-tab');
+            const savedTab = document.getElementById('saved-tab');
+
+            // Initialiser Bootstrap Toast
+            const toast = new bootstrap.Toast(toastNotification, {
+                delay: 2000
+            });
+
+            // Mettre à jour l'affichage de la longueur
+            passwordLengthSlider.addEventListener('input', function() {
+                lengthValueDisplay.textContent = this.value;
+            });
+
+            // Fonction pour générer un mot de passe
+            function generatePassword() {
+                try {
+                    // Ajouter une animation au bouton
+                    generateButton.classList.add('pulse-animation');
+                    setTimeout(() => {
+                        generateButton.classList.remove('pulse-animation');
+                    }, 500);
+
+                    // Vérifier qu'au moins un type de caractère est sélectionné
+                    if (!includeLowercaseCheckbox.checked && 
+                        !includeUppercaseCheckbox.checked && 
+                        !includeDigitsCheckbox.checked && 
+                        !includeSymbolsCheckbox.checked) {
+                        showToast("Veuillez sélectionner au moins un type de caractère.", "danger");
+                        return;
+                    }
+
+                    // Définir les pools de caractères
+                    let characterPool = '';
+                    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+                    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    const digits = '0123456789';
+                    const symbols = '!@#$%^&*()_+=-[]{};:,.<>/?';
+                    const ambiguous = 'Il1O0';
+
+                    // Ajouter les caractères selon les options
+                    if (includeLowercaseCheckbox.checked) characterPool += lowercase;
+                    if (includeUppercaseCheckbox.checked) characterPool += uppercase;
+                    if (includeDigitsCheckbox.checked) characterPool += digits;
+                    if (includeSymbolsCheckbox.checked) characterPool += symbols;
+
+                    // Exclure les caractères ambigus si demandé
+                    if (excludeAmbiguousCheckbox.checked) {
+                        characterPool = characterPool.split('').filter(char => !ambiguous.includes(char)).join('');
+                    }
+
+                    // Vérifier que le pool n'est pas vide après exclusion
+                    if (characterPool.length === 0) {
+                        showToast("L'exclusion des caractères ambigus a vidé l'ensemble de caractères possible avec les options choisies.", "danger");
+                        return;
+                    }
+
+                    const passwordLength = parseInt(passwordLengthSlider.value);
+                    
+                    // Générer le mot de passe
+                    let passwordChars = [];
+                    
+                    // Assurer au moins un caractère de chaque type sélectionné
+                    const requiredPools = [];
+                    if (includeLowercaseCheckbox.checked) {
+                        let pool = lowercase;
+                        if (excludeAmbiguousCheckbox.checked) {
+                            pool = pool.split('').filter(char => !ambiguous.includes(char)).join('');
+                        }
+                        if (pool.length > 0) requiredPools.push(pool);
+                    }
+                    
+                    if (includeUppercaseCheckbox.checked) {
+                        let pool = uppercase;
+                        if (excludeAmbiguousCheckbox.checked) {
+                            pool = pool.split('').filter(char => !ambiguous.includes(char)).join('');
+                        }
+                        if (pool.length > 0) requiredPools.push(pool);
+                    }
+                    
+                    if (includeDigitsCheckbox.checked) {
+                        let pool = digits;
+                        if (excludeAmbiguousCheckbox.checked) {
+                            pool = pool.split('').filter(char => !ambiguous.includes(char)).join('');
+                        }
+                        if (pool.length > 0) requiredPools.push(pool);
+                    }
+                    
+                    if (includeSymbolsCheckbox.checked) {
+                        let pool = symbols;
+                        if (excludeAmbiguousCheckbox.checked) {
+                            pool = pool.split('').filter(char => !ambiguous.includes(char)).join('');
+                        }
+                        if (pool.length > 0) requiredPools.push(pool);
+                    }
+                    
+                    // Ajouter un caractère de chaque pool requis
+                    for (const pool of requiredPools) {
+                        if (passwordChars.length < passwordLength) {
+                            passwordChars.push(pool.charAt(Math.floor(Math.random() * pool.length)));
+                        }
+                    }
+                    
+                    // Compléter avec des caractères aléatoires
+                    while (passwordChars.length < passwordLength) {
+                        passwordChars.push(characterPool.charAt(Math.floor(Math.random() * characterPool.length)));
+                    }
+                    
+                    // Mélanger les caractères
+                    passwordChars = shuffleArray(passwordChars);
+                    
+                    // Définir le mot de passe avec animation
+                    generatedPasswordInput.classList.add('password-generation-animation');
+                    setTimeout(() => {
+                        generatedPasswordInput.classList.remove('password-generation-animation');
+                    }, 500);
+                    
+                    const password = passwordChars.join('');
+                    generatedPasswordInput.value = password;
+                    
+                    // Mettre à jour l'indicateur de force
+                    updatePasswordStrength(password);
+                    
+                    // Réinitialiser l'état du bouton de copie
+                    resetCopyButton();
+                    
+                } catch (error) {
+                    showToast(`Une erreur est survenue: ${error}`, "danger");
+                }
+            }
+
+            // Fonction pour mélanger un tableau (algorithme de Fisher-Yates)
+            function shuffleArray(array) {
+                const newArray = [...array];
+                for (let i = newArray.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+                }
+                return newArray;
+            }
+
+            // Évaluer la force du mot de passe
+            function updatePasswordStrength(password) {
+                let score = 0;
+                const length = password.length;
+                const hasLower = /[a-z]/.test(password);
+                const hasUpper = /[A-Z]/.test(password);
+                const hasDigit = /\d/.test(password);
+                const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+                
+                if (length >= 12) score += 1;
+                if (length >= 16) score += 1;
+                if (hasLower) score += 1;
+                if (hasUpper) score += 1;
+                if (hasDigit) score += 1;
+                if (hasSymbol) score += 1;
+                
+                // Calculer le pourcentage (sur 6 points maximum)
+                const strengthPercentage = Math.min(100, Math.round((score / 6) * 100));
+                
+                // Mettre à jour la barre de progression
+                strengthIndicator.style.width = `${strengthPercentage}%`;
+                strengthIndicator.setAttribute('aria-valuenow', strengthPercentage);
+                
+                // Définir la classe CSS et le texte selon la force
+                strengthIndicator.className = 'progress-bar';
+                if (score <= 2) {
+                    strengthIndicator.classList.add('strength-very-weak');
+                    strengthText.textContent = 'Très faible';
+                } else if (score <= 3) {
+                    strengthIndicator.classList.add('strength-weak');
+                    strengthText.textContent = 'Faible';
+                } else if (score <= 4) {
+                    strengthIndicator.classList.add('strength-medium');
+                    strengthText.textContent = 'Moyen';
+                } else if (score <= 5) {
+                    strengthIndicator.classList.add('strength-strong');
+                    strengthText.textContent = 'Fort';
+                } else {
+                    strengthIndicator.classList.add('strength-very-strong');
+                    strengthText.textContent = 'Très fort';
+                }
+            }
+
+            // Copier le mot de passe dans le presse-papiers
+            function copyToClipboard() {
+                const password = generatedPasswordInput.value;
+                if (password) {
+                    navigator.clipboard.writeText(password)
+                        .then(() => {
+                            // Changer l'icône du bouton avec animation
+                            copyIcon.classList.add('d-none');
+                            checkIcon.classList.remove('d-none');
+                            copyButton.classList.add('copy-success');
+                            
+                            // Afficher le toast
+                            showToast("Mot de passe copié dans le presse-papiers !", "success");
+                            
+                            // Réinitialiser après 2 secondes
+                            setTimeout(resetCopyButton, 2000);
+                        })
+                        .catch(err => {
+                            showToast(`Impossible de copier dans le presse-papiers: ${err}`, "danger");
+                        });
+                } else {
+                    showToast("Veuillez d'abord générer un mot de passe.", "warning");
+                }
+            }
+
+            // Réinitialiser le bouton de copie
+            function resetCopyButton() {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copyButton.classList.remove('copy-success');
+            }
+
+            // Afficher un toast de notification
+            function showToast(message, type) {
+                toastMessage.textContent = message;
+                toastNotification.className = `toast align-items-center text-white bg-${type} border-0`;
+                toast.show();
+            }
+
+            // Ouvrir la modal pour sauvegarder un mot de passe
+            function openSavePasswordModal() {
+                const password = generatedPasswordInput.value;
+                if (!password) {
+                    showToast("Veuillez d'abord générer un mot de passe.", "warning");
+                    return;
+                }
+                
+                passwordToSaveInput.value = password;
+                passwordLabelInput.value = '';
+                savePasswordModal.show();
+                
+                // Focus sur le champ de libellé
+                setTimeout(() => {
+                    passwordLabelInput.focus();
+                }, 500);
+            }
+
+            // Sauvegarder un mot de passe
+            function savePassword() {
+                const password = passwordToSaveInput.value;
+                let label = passwordLabelInput.value.trim();
+                
+                if (!password) {
+                    showToast("Mot de passe invalide.", "danger");
+                    return;
+                }
+                
+                if (!label) {
+                    label = "Mot de passe " + new Date().toLocaleDateString();
+                }
+                
+                // Récupérer les mots de passe existants
+                let savedPasswords = getSavedPasswords();
+                
+                // Ajouter le nouveau mot de passe
+                const newPassword = {
+                    id: Date.now().toString(),
+                    label: label,
+                    password: password,
+                    date: new Date().toISOString()
+                };
+                
+                savedPasswords.push(newPassword);
+                
+                // Sauvegarder dans le localStorage
+                localStorage.setItem('savedPasswords', JSON.stringify(savedPasswords));
+                
+                // Fermer la modal
+                savePasswordModal.hide();
+                
+                // Afficher un message de confirmation
+                showToast("Mot de passe sauvegardé avec succès !", "success");
+                
+                // Mettre à jour la liste des mots de passe
+                updateSavedPasswordsList();
+                
+                // Animer le bouton de l'onglet des mots de passe sauvegardés
+                savedTab.classList.add('pulse-animation');
+                setTimeout(() => {
+                    savedTab.classList.remove('pulse-animation');
+                }, 500);
+            }
+
+            // Récupérer les mots de passe sauvegardés
+            function getSavedPasswords() {
+                const savedPasswordsJson = localStorage.getItem('savedPasswords');
+                return savedPasswordsJson ? JSON.parse(savedPasswordsJson) : [];
+            }
+
+            // Mettre à jour la liste des mots de passe sauvegardés
+            function updateSavedPasswordsList() {
+                const savedPasswords = getSavedPasswords();
+                savedPasswordsList.innerHTML = '';
+                
+                if (savedPasswords.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+                
+                emptyState.style.display = 'none';
+                
+                savedPasswords.forEach(item => {
+                    const passwordItem = document.createElement('div');
+                    passwordItem.className = 'saved-password-item p-3 border-bottom';
+                    passwordItem.dataset.id = item.id;
+                    
+                    const date = new Date(item.date);
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    passwordItem.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="saved-password-label">${escapeHtml(item.label)}</div>
+                                <div class="saved-password-value password-mask">${escapeHtml(item.password)}</div>
+                                <small class="text-muted">Sauvegardé le ${formattedDate}</small>
+                            </div>
+                            <div class="saved-password-actions">
+                                <button class="btn btn-sm btn-outline-secondary toggle-visibility-btn" title="Afficher/Masquer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                    </svg>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary copy-saved-btn" title="Copier">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                                    </svg>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger delete-saved-btn" title="Supprimer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    savedPasswordsList.appendChild(passwordItem);
+                    
+                    // Ajouter une animation d'entrée
+                    passwordItem.classList.add('password-save-animation');
+                    setTimeout(() => {
+                        passwordItem.classList.remove('password-save-animation');
+                    }, 500);
+                });
+                
+                // Ajouter les écouteurs d'événements pour les boutons
+                addSavedPasswordsEventListeners();
+            }
+
+            // Ajouter les écouteurs d'événements pour les boutons des mots de passe sauvegardés
+            function addSavedPasswordsEventListeners() {
+                // Boutons pour afficher/masquer les mots de passe
+                document.querySelectorAll('.toggle-visibility-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const passwordItem = this.closest('.saved-password-item');
+                        const passwordValue = passwordItem.querySelector('.saved-password-value');
+                        
+                        if (passwordValue.classList.contains('password-mask')) {
+                            passwordValue.classList.remove('password-mask');
+                            this.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16">
+                                    <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486z"/>
+                                    <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/>
+                                    <path d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z"/>
+                                </svg>
+                            `;
+                        } else {
+                            passwordValue.classList.add('password-mask');
+                            this.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                </svg>
+                            `;
+                        }
+                    });
+                });
+                
+                // Boutons pour copier les mots de passe
+                document.querySelectorAll('.copy-saved-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const passwordItem = this.closest('.saved-password-item');
+                        const id = passwordItem.dataset.id;
+                        const savedPasswords = getSavedPasswords();
+                        const passwordObj = savedPasswords.find(p => p.id === id);
+                        
+                        if (passwordObj) {
+                            navigator.clipboard.writeText(passwordObj.password)
+                                .then(() => {
+                                    // Animer le bouton
+                                    this.classList.add('pulse-animation');
+                                    setTimeout(() => {
+                                        this.classList.remove('pulse-animation');
+                                    }, 500);
+                                    
+                                    showToast(`Mot de passe "${passwordObj.label}" copié dans le presse-papiers !`, "success");
+                                })
+                                .catch(err => {
+                                    showToast(`Impossible de copier dans le presse-papiers: ${err}`, "danger");
+                                });
+                        }
+                    });
+                });
+                
+                // Boutons pour supprimer les mots de passe
+                document.querySelectorAll('.delete-saved-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const passwordItem = this.closest('.saved-password-item');
+                        const id = passwordItem.dataset.id;
+                        
+                        // Ajouter une animation de suppression
+                        passwordItem.classList.add('password-delete-animation');
+                        
+                        setTimeout(() => {
+                            // Supprimer le mot de passe
+                            let savedPasswords = getSavedPasswords();
+                            savedPasswords = savedPasswords.filter(p => p.id !== id);
+                            localStorage.setItem('savedPasswords', JSON.stringify(savedPasswords));
+                            
+                            // Mettre à jour la liste
+                            updateSavedPasswordsList();
+                            
+                            showToast("Mot de passe supprimé avec succès !", "success");
+                        }, 500);
+                    });
+                });
+            }
+
+            // Échapper les caractères HTML pour éviter les injections XSS
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Événements
+            generateButton.addEventListener('click', generatePassword);
+            copyButton.addEventListener('click', copyToClipboard);
+            savePasswordButton.addEventListener('click', openSavePasswordModal);
+            confirmSaveButton.addEventListener('click', savePassword);
+            goToGeneratorButton.addEventListener('click', function() {
+                const tabTrigger = new bootstrap.Tab(generatorTab);
+                tabTrigger.show();
+            });
+            
+            // Mettre à jour la liste des mots de passe sauvegardés au chargement
+            updateSavedPasswordsList();
+            
+            // Générer un mot de passe initial
+            generatePassword();
+            
+            // Ajouter des animations lors du changement d'onglet
+            const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(event) {
+                    const targetPane = document.querySelector(event.target.getAttribute('data-bs-target'));
+                    targetPane.classList.add('animate__animated', 'animate__fadeIn');
+                    setTimeout(() => {
+                        targetPane.classList.remove('animate__animated', 'animate__fadeIn');
+                    }, 500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
